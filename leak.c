@@ -38,16 +38,6 @@ cl_info cl_init()
     return info;
 }
 
-cl_mem cl_sub_array(cl_mem src, int offset, int size)
-{
-    cl_buffer_region r;
-    r.origin = offset*sizeof(float);
-    r.size = size*sizeof(float);
-    cl_mem sub = clCreateSubBuffer(src, CL_MEM_READ_WRITE, CL_BUFFER_CREATE_TYPE_REGION, &r, &info.error);
-    check_error(info);
-    return sub;
-}
-
 cl_mem cl_make_array(float *x, int n)
 {
     cl_mem mem = clCreateBuffer(info.context,
@@ -65,9 +55,13 @@ int main()
     cl_mem mem = cl_make_array(a, 10000);
     printf("Let's make some sub arrays...\n");
     while(1){
-        cl_mem sub = cl_sub_array(mem, 0, 100);
-        cl_int status = clReleaseMemObject(sub);
-        if (status != CL_SUCCESS) printf("Failed to release\n");
+        cl_buffer_region r;
+        r.origin = 0*sizeof(float);
+        r.size = 100*sizeof(float);
+        cl_mem sub = clCreateSubBuffer(mem, CL_MEM_READ_WRITE, CL_BUFFER_CREATE_TYPE_REGION, &r, &info.error);
+        check_error(info);
+        info.error = clReleaseMemObject(sub);
+        check_error(info);
     }
     return 0;
 }
